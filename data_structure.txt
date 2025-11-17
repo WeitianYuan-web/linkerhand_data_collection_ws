@@ -1,0 +1,12 @@
+collection_data/
+└── tasks_names/
+    └── session_timestamp/
+        ├── episode_000001/                   
+        │   ├── telemetry.npz                 # Hands + Arms Observations and Actions
+        │   ├── cameras/
+        │   │   ├── cam_top.mp4               # H.264 compressed video
+        │   │   └── cam_top.timestamps.npy    # Frame timestamps
+        │   ├── camera_info.json              # Camera intrinsics
+        │   ├── manifest.json                 # Episode metadata
+        │   └── metadata.json                 # Episode statistics
+        └── ... (same structure)

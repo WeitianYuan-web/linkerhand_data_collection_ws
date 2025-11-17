@@ -1,0 +1,6 @@
+# 客户端请求时发送参数
+string req
+
+---
+# 服务端响应发送参数
+string resp

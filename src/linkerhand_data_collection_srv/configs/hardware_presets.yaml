@@ -1,0 +1,174 @@
+# Hardware Presets for LinkerHand Data Collection System
+# Pre-defined hardware configurations for common robotic setups
+
+hardware_presets:
+  # Single arm + hand setup (6DoF Piper arm with 6DoF LinkerHand O6)
+  piper_linkerhand_single:
+    description: "Single 6DoF Piper arm with LinkerHand"
+    arms:
+      dof_per_arm: 6
+      type: "piper"
+      controllable: ["left", "right"]  # User can specify which side
+      joint_names: ["waist", "shoulder", "elbow", "forearm_roll", "wrist_angle", "wrist_rotate"]
+    hands:
+      dof_per_hand: 10
+      type: "L10V7"
+      controllable: ["left", "right"]  # User can specify which side
+      tactile_support: false  # O6 does not have tactile sensors
+    max_joints_per_side: 16 # arm + hand per side
+    total_joints: 16 # (6+0) * 2
+    default_camera_preset: "intel_d455_single_top"  # Default camera configuration
+  # Dual arm + hand setup (7DoF Robstride arms with 6DoF LinkerHand O6)
+  linkerarm_linkerhand_dual:
+    description: "Dual 7DoF LinkerArm arms with dual LinkerHand"
+    arms:
+      dof_per_arm: 7
+      type: "linker"
+      controllable: ["left", "right"]  # Both sides always used
+      joint_names: ["joint1", "joint2", "joint3", "joint4", "joint5", "joint6", "joint7"]
+    hands:
+      dof_per_hand: 10
+      type: "L10V7"
+      controllable: ["left", "right"]  # Both sides always used
+      tactile_support: false  # O6 does not have tactile sensors
+    max_joints_per_side: 17  # arm + hand per side
+    total_joints: 34 # (7+6) * 2
+    default_camera_preset: "intel_d455_single_top"  # Default camera configuration for single camera setup
+  # Dual arm + hand setup (7DoF Robstride arms with 20DoF LinkerHand L20)
+# Camera Presets for different camera configurations
+camera_presets:
+  # Single top-mounted Intel RealSense D455 (Config B)
+  intel_d455_single_top:
+    type: "intel_d455"
+    sdk: "realsense_ros2"
+    description: "Single Intel RealSense D455 mounted top-down (RGB 640x480@30Hz)"
+    cameras:
+      - name: "cam_top"
+        position: "top"
+        topic: "/camera/d455_camera/color/image_raw"
+        topic_info: "/camera/d455_camera/color/camera_info"
+        resolution: [640, 480]
+        fps: 30
+        color_format: "RGB8"
+        stereo_support: false
+        depth_support: false
+        infrared_support: false
+
+  # D455 top + single D405 right wrist (Config A for Piper single arm)
+  intel_d455_with_right_wrist:
+    type: "intel_d455"
+    sdk: "realsense_ros2"
+    description: "D455 top camera + D405 right wrist camera (RGB 640x480@30Hz)"
+    cameras:
+      - name: "cam_top"
+        position: "top"
+        topic: "/camera/d455_camera/color/image_raw"
+        topic_info: "/camera/d455_camera/color/camera_info"
+        resolution: [640, 480]
+        fps: 30
+        color_format: "RGB8"
+        stereo_support: false
+        depth_support: false
+        infrared_support: false
+      - name: "cam_right_wrist"
+        position: "right_wrist"
+        topic: "/camera_right_wrist/d405_right_camera/color/image_rect_raw"
+        topic_info: "/camera_right_wrist/d405_right_camera/color/camera_info"
+        resolution: [640, 480]
+        fps: 30
+        color_format: "RGB8"
+        stereo_support: false
+        depth_support: false
+        infrared_support: false
+
+  # D455 top + single D405 left wrist (Config A for Piper single arm, left hand)
+  intel_d455_with_left_wrist:
+    type: "intel_d455"
+    sdk: "realsense_ros2"
+    description: "D455 top camera + D405 left wrist camera (RGB 640x480@30Hz)"
+    cameras:
+      - name: "cam_top"
+        position: "top"
+        topic: "/camera/d455_camera/color/image_raw"
+        topic_info: "/camera/d455_camera/color/camera_info"
+        resolution: [640, 480]
+        fps: 30
+        color_format: "RGB8"
+        stereo_support: false
+        depth_support: false
+        infrared_support: false
+      - name: "cam_left_wrist"
+        position: "left_wrist"
+        topic: "/camera_left_wrist/d405_left_camera/color/image_rect_raw"
+        topic_info: "/camera_left_wrist/d405_left_camera/color/camera_info"
+        resolution: [640, 480]
+        fps: 30
+        color_format: "RGB8"
+        stereo_support: false
+        depth_support: false
+        infrared_support: false
+
+  # D455 top + dual D405 wrist cameras (Config A for LinkerHand dual arms)
+  intel_d455_with_dual_wrist:
+    type: "intel_d455"
+    sdk: "realsense_ros2"
+    description: "D455 top camera + dual D405 wrist cameras (RGB 640x480@30Hz)"
+    cameras:
+      - name: "cam_top"
+        position: "top"
+        topic: "/camera/d455_camera/color/image_raw"
+        topic_info: "/camera/d455_camera/color/camera_info"
+        resolution: [640, 480]
+        fps: 30
+        color_format: "RGB8"
+        stereo_support: false
+        depth_support: false
+        infrared_support: false
+      - name: "cam_left_wrist"
+        position: "left_wrist"
+        topic: "/camera_left_wrist/d405_left_camera/color/image_rect_raw"
+        topic_info: "/camera_left_wrist/d405_left_camera/color/camera_info"
+        resolution: [640, 480]
+        fps: 30
+        color_format: "RGB8"
+        stereo_support: false
+        depth_support: false
+        infrared_support: false
+      - name: "cam_right_wrist"
+        position: "right_wrist"
+        topic: "/camera_right_wrist/d405_right_camera/color/image_rect_raw"
+        topic_info: "/camera_right_wrist/d405_right_camera/color/camera_info"
+        resolution: [640, 480]
+        fps: 30
+        color_format: "RGB8"
+        stereo_support: false
+        depth_support: false
+        infrared_support: false
+
+# Video encoding presets
+video_encoding_presets:
+  low_quality:
+    description: "Low quality for fast recording and small file sizes"
+    codec: "libx264"
+    preset: "ultrafast"
+    crf: 28
+    pixel_format: "rgb24"
+  medium_quality:
+    description: "Balanced quality and file size"
+    codec: "libx264"
+    preset: "fast"
+    crf: 23
+    pixel_format: "rgb24"
+  high_quality:
+    description: "High quality for detailed visual data"
+    codec: "libx264"
+    preset: "medium"
+    crf: 18
+    pixel_format: "rgb24"
+  lossless:
+    description: "Lossless encoding for maximum quality"
+    codec: "libx264"
+    preset: "slow"
+    crf: 0
+    pixel_format: "rgb24"
+

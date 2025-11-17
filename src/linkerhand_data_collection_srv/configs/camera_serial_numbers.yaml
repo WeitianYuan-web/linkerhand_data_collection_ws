@@ -1,0 +1,51 @@
+# RealSense Camera Serial Number Configuration
+# 自动生成时间: 2025-11-10 17:39:14
+#
+# 检测到的相机：
+#   D455: 1 个
+#   D405: 0 个
+#
+# 如何更新：
+#   重新运行 scripts/detect_cameras.sh
+
+camera_serial_numbers:
+  d455_top:
+    enabled: true
+    serial_number: "409122301715"
+    device_type: "d455"
+    position: "top"
+    namespace: "camera"
+    camera_name: "d455_camera"
+    usb_port: "2-8"
+    auto_detect: false
+    notes: "Detected on 2025-11-10"
+  d405_left_wrist:
+    enabled: false
+    serial_number: ""
+    device_type: "d405"
+    position: "left_wrist"
+    namespace: "camera_left_wrist"
+    camera_name: "d405_left_camera"
+    usb_port: ""
+    auto_detect: false
+    notes: "Detected on 2025-11-10"
+  d405_right_wrist:
+    enabled: false
+    serial_number: ""
+    device_type: "d405"
+    position: "right_wrist"
+    namespace: "camera_right_wrist"
+    camera_name: "d405_right_camera"
+    usb_port: ""
+    auto_detect: false
+    notes: "Detected on 2025-11-10"
+
+# 全局设置
+global_settings:
+  fallback_to_auto_detect: true
+  warn_on_mismatch: true
+  unified_resolution:
+    width: 640
+    height: 480
+    fps: 30
+    format: "RGB8"

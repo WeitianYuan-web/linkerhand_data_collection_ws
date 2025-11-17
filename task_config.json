@@ -1,0 +1,9 @@
+{
+  "armType": "piper",
+  "task": "linkerhand_piper_grasp",
+  "handSide": "left",
+  "handModel": "L10V7",
+  "collectTactile": false,
+  "cameraD455Count": 1,
+  "cameraD405Count": 0
+}

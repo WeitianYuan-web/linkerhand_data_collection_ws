@@ -1,0 +1,574 @@
+# ROS2 specific
+build/
+install/
+log/
+*.db
+*.db-*
+
+# Data collection
+collection_data/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# C++ specific
+*.o
+*.obj
+*.exe
+*.out
+*.app
+*.i
+*.ii
+*.so
+*.dylib
+*.dll
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Log files
+*.log
+logs/
+
+# Data files (uncomment if you don't want to track data)
+# *.bag
+# *.pkl
+# *.h5
+# *.hdf5
+# *.csv
+# *.json
+
+# Configuration files with sensitive data
+config/local_*.yaml
+config/local_*.json
+*.env
+.env.local
+.env.production
+
+# Build artifacts
+*.whl
+*.deb
+*.rpm
+*.apk
+
+# Docker
+.dockerignore
+# Force track specific Docker files
+!Dockerfile.hand_retarget
+!docker-compose.hand_retarget.yml
+
+# Backup files
+*.orig
+*.rej
+
+# Large binary files and data
+*.bag
+*.bag.active
+*.bag.index
+
+# Compiled Python files
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+*.lnk
+
+# Linux
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Log files
+*.log
+logs/
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Archive files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Executable files
+*.exe
+*.out
+*.app
+
+# Object files
+*.o
+*.obj
+
+# Shared libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Java files
+*.class
+
+# Compiled C/C++ files
+*.o
+*.obj
+*.exe
+*.out
+*.app
+*.i
+*.ii
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Build directories
+build/
+dist/
+target/
+
+# Package files
+*.deb
+*.rpm
+*.dmg
+*.pkg
+*.msi
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary and backup files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.rej
+
+# Log files
+*.log
+logs/
+
+# Data files (uncomment if you don't want to track data)
+# *.bag
+# *.pkl
+# *.h5
+# *.hdf5
+# *.csv
+# *.json
+
+# Configuration files with sensitive data
+config/local_*.yaml
+config/local_*.json
+*.env
+.env.local
+.env.production
+
+# Build artifacts
+*.whl
+*.deb
+*.rpm
+*.apk
+
+# Docker
+.dockerignore
+
+# Force track specific Docker files
+!Dockerfile.hand_retarget
+!docker-compose.hand_retarget.yml
+
+# Large binary files and data
+*.bag
+*.bag.active
+*.bag.index
+
+# ROS specific
+*.bag
+*.bag.active
+*.bag.index
+
+# Python wheel files (keep some specific ones)
+*.whl
+!linkerhand-*.whl
+
+# Backup files
+*.orig
+*.rej
+
+# Test files
+test_*.py
+*_test.py
+tests/
+
+# Documentation build
+docs/_build/
+docs/build/
+
+# Coverage reports
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+htmlcov/
+
+# Profiling data
+.prof
+
+# Local configuration
+local_config.py
+local_settings.py
+
+学习文档/
+test/
+reports/
+collection_data/
+
+# Large binary files that should not be in git
+# GIF files (demo files)
+*.gif
+
+# Debug files
+*.pdb
+*.ilk
+*.pch
+*.obj
+x64/Debug/
+x64/Release/
+Debug/
+Release/
+
+# Large model files (STL meshes - keep only if necessary)
+# Uncomment to ignore all STL files:
+# *.STL
+
+# Python wheel files
+*.whl
+
+# PDF files (documentation)
+*.pdf
+
+# Demo directories with large files
+**/Demo/**/*.gif
+**/RM_API2/Demo/
+log/

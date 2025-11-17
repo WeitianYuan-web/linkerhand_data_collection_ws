@@ -1,0 +1,64 @@
+task_name: linkerhand_piper_grasp
+description: Single left/right arm task with Piper arm and LinkerHand
+
+# Hardware setup - which sides are active
+hardware:
+  preset: intel_d455_single_top
+  active_sides:
+    left_arm: true
+    right_arm: false
+    left_hand: true
+    right_hand: false
+
+  # Arm joint configuration (override defaults)
+  arm_joints:
+    left_arm_dof: 6
+    right_arm_dof: 0
+
+  hand_joints:
+    left_hand_dof: 10
+    right_hand_dof: 0
+
+  topics:
+    # LinkerHand state/command topics
+    left_hand_state: /cb_left_hand_state_arc
+    right_hand_state: /cb_right_hand_state_arc
+    left_hand_cmd: /cb_left_hand_control_cmd
+    right_hand_cmd: /cb_right_hand_control_cmd
+    # LinkerHand tactile sensing topics
+    left_hand_tactile: /cb_left_hand_matrix_touch
+    right_hand_tactile: /cb_right_hand_matrix_touch
+
+  collect_tactile: false
+
+# Camera setup
+cameras:
+  preset: intel_d455_single_top
+  stereo_mode: false
+  enable_top_camera: true
+  enable_left_wrist_camera: false
+  enable_right_wrist_camera: false
+  optional_left_wrist: true
+  optional_right_wrist: true
+
+  video_settings:
+    quality: high
+    fps: 30
+    use_compression: true
+
+collection:
+  dataset_dir: collection_data/linkerhand_piper_grasp/all_episodes
+  num_episodes: 1000
+  episode_len: 1000
+  dt: 0.2
+  max_timestamp_diff: 0.08
+  use_system_time: true  # Piper SDK uses system time, not ROS2 time
+
+device:
+  device_number: '123456'
+  device_type: gather
+  hardware_specs:
+    gpu: "NVIDIA GeForce RTX 4070 SUPER X 1"
+    cpu: "Intel(R) Core(TM) i7-14700F X 1"
+    memory: "31G"
+    storage: "955.7GB"

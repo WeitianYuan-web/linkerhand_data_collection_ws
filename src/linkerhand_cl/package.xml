@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>linkerhand_cl</name>
+  <version>0.0.0</version>
+  <description>LinkerHand控制节点，用于订阅EXHand映射数据话题来控制灵巧手</description>
+  <maintainer email="ywt@todo.todo">ywt</maintainer>
+  <license>TODO: License declaration</license>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
+

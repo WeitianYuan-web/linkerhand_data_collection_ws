@@ -1,0 +1,20 @@
+# LinkerHand CAN Device Rules
+# This file allows non-root access to CAN devices for LinkerHand robotic arms
+
+# Allow access to all CAN network interfaces
+SUBSYSTEM=="net", KERNEL=="can*", MODE="0666", GROUP="dialout"
+
+# Allow access to CAN device files
+KERNEL=="can*", MODE="0666", GROUP="dialout"
+
+# Specific rules for common CAN interface names
+SUBSYSTEM=="net", KERNEL=="can0", MODE="0666", GROUP="dialout", SYMLINK+="linkerhand_can0"
+SUBSYSTEM=="net", KERNEL=="can1", MODE="0666", GROUP="dialout", SYMLINK+="linkerhand_can1"
+SUBSYSTEM=="net", KERNEL=="can2", MODE="0666", GROUP="dialout", SYMLINK+="linkerhand_can2"
+SUBSYSTEM=="net", KERNEL=="can3", MODE="0666", GROUP="dialout", SYMLINK+="linkerhand_can3"
+
+# Allow access to CAN socket files
+SUBSYSTEM=="net", KERNEL=="can*", MODE="0666", GROUP="dialout"
+
+# Allow access to CAN statistics and control files
+SUBSYSTEM=="net", KERNEL=="can*", MODE="0666", GROUP="dialout"

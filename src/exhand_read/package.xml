@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>exhand_read</name>
+  <version>0.0.0</version>
+  <description>手部控制器ROS2节点，用于读取和发布传感器数据及映射数据</description>
+  <maintainer email="ywt@todo.todo">ywt</maintainer>
+  <license>TODO: License declaration</license>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
