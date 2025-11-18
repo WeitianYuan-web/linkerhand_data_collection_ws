@@ -248,31 +248,45 @@ private:
     HandFeedbackData feedback_data_;  /* 反馈数据 */
     
     // L10数据缓存
-    std::vector<uint8_t> l10_x01;  /* L10位置数据1 */
-    std::vector<uint8_t> l10_x04;  /* L10位置数据2 */
-    std::vector<uint8_t> l10_x05;  /* L10速度数据1 */
-    std::vector<uint8_t> l10_x06;  /* L10速度数据2 */
+    std::vector<uint8_t> l10_x01;  /* L10位置数据1（前6个关节） */
+    std::vector<uint8_t> l10_x04;  /* L10位置数据2（后4个关节） */
+    std::vector<uint8_t> l10_x02;  /* L10转矩数据1（前5个关节） */
+    std::vector<uint8_t> l10_x03;  /* L10转矩数据2（后5个关节） */
+    std::vector<uint8_t> l10_x05;  /* L10速度数据1（前5个关节） */
+    std::vector<uint8_t> l10_x06;  /* L10速度数据2（后5个关节） */
     std::vector<uint8_t> l10_x33;  /* L10温度数据1 */
     std::vector<uint8_t> l10_x34;  /* L10温度数据2 */
     
     // L20数据缓存
-    std::vector<uint8_t> l20_x01;  /* L20 Pitch位置 */
-    std::vector<uint8_t> l20_x02;  /* L20 Yaw位置 */
-    std::vector<uint8_t> l20_x03;  /* L20 Roll位置 */
-    std::vector<uint8_t> l20_x04;  /* L20 Tip位置 */
+    std::vector<uint8_t> l20_x01;  /* L20 Pitch位置（指根弯曲） */
+    std::vector<uint8_t> l20_x02;  /* L20 Yaw位置（侧摆） */
+    std::vector<uint8_t> l20_x03;  /* L20 Roll位置（拇指旋转） */
+    std::vector<uint8_t> l20_x04;  /* L20 Tip位置（指尖弯曲） */
     std::vector<uint8_t> l20_x05;  /* L20速度 */
     std::vector<uint8_t> l20_x06;  /* L20电流 */
     std::vector<uint8_t> l20_x07;  /* L20故障码 */
     
     // L21数据缓存
-    std::vector<uint8_t> l21_x01;  /* L21 Roll位置 */
-    std::vector<uint8_t> l21_x02;  /* L21 Yaw位置 */
-    std::vector<uint8_t> l21_x03;  /* L21 Pitch位置 */
-    std::vector<uint8_t> l21_x06;  /* L21 Tip位置 */
+    std::vector<uint8_t> l21_x41;  /* L21 拇指位置（6个关节） */
+    std::vector<uint8_t> l21_x42;  /* L21 食指位置（6个关节） */
+    std::vector<uint8_t> l21_x43;  /* L21 中指位置（6个关节） */
+    std::vector<uint8_t> l21_x44;  /* L21 无名指位置（6个关节） */
+    std::vector<uint8_t> l21_x45;  /* L21 小指位置（6个关节） */
+    std::vector<uint8_t> l21_x49;  /* L21 拇指速度（6个关节） */
+    std::vector<uint8_t> l21_x4a;  /* L21 食指速度（6个关节） */
+    std::vector<uint8_t> l21_x4b;  /* L21 中指速度（6个关节） */
+    std::vector<uint8_t> l21_x4c;  /* L21 无名指速度（6个关节） */
+    std::vector<uint8_t> l21_x4d;  /* L21 小指速度（6个关节） */
+    std::vector<uint8_t> l21_x51;  /* L21 拇指转矩（6个关节） */
+    std::vector<uint8_t> l21_x52;  /* L21 食指转矩（6个关节） */
+    std::vector<uint8_t> l21_x53;  /* L21 中指转矩（6个关节） */
+    std::vector<uint8_t> l21_x54;  /* L21 无名指转矩（6个关节） */
+    std::vector<uint8_t> l21_x55;  /* L21 小指转矩（6个关节） */
     
     // L7数据缓存
-    std::vector<uint8_t> l7_x01;   /* L7位置数据 */
-    std::vector<uint8_t> l7_x05;   /* L7速度数据 */
+    std::vector<uint8_t> l7_x01;   /* L7位置数据（7个关节） */
+    std::vector<uint8_t> l7_x02;   /* L7转矩数据（7个关节） */
+    std::vector<uint8_t> l7_x05;   /* L7速度数据（7个关节） */
     
     // L25数据缓存
     std::vector<uint8_t> l25_x01;  /* L25 Roll位置 */
@@ -282,8 +296,9 @@ private:
     std::vector<uint8_t> l25_x06;  /* L25 Tip位置 */
     
     // O6数据缓存
-    std::vector<uint8_t> o6_x01;   /* O6位置数据 */
-    std::vector<uint8_t> o6_x05;   /* O6速度数据 */
+    std::vector<uint8_t> o6_x01;   /* O6位置数据（6个关节） */
+    std::vector<uint8_t> o6_x02;   /* O6转矩数据（6个关节） */
+    std::vector<uint8_t> o6_x05;   /* O6速度数据（6个关节） */
     
     // 通用数据缓存（力反馈、触觉等）
     std::vector<float> normal_force_;          /* 法向力 */

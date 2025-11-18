@@ -258,27 +258,27 @@ int CanSender::sendL10(uint32_t device_id, const HandControlRequest& request)
 int CanSender::sendL20(uint32_t device_id, const HandControlRequest& request)
 {
     /**
-     * @brief L20协议：6帧协议
+     * @brief L20协议：带返回的多帧协议
      * 
-     * 协议格式：
-     * - 0x11: Pitch帧（5个手指）
-     * - 0x14: Tip帧（5个手指）
-     * - 0x12: Yaw帧（5个手指）
-     * - 0x13: Roll帧（5个手指）
-     * - 0x15: Speed帧（5个手指）
-     * - 0x16: Current帧（5个手指）
+     * 协议格式（带返回类型）：
+     * - 0x01: 指根弯曲（Pitch，5个手指）
+     * - 0x02: 侧摆（Yaw，5个手指）
+     * - 0x03: 拇指旋转（Roll，5个手指）
+     * - 0x04: 指尖弯曲（Tip，5个手指）
+     * - 0x05: 速度（5个手指）
+     * - 0x06: 电流（5个手指）
      */
     
-    constexpr uint8_t L20_FRAME_PITCH = 0x11;
-    constexpr uint8_t L20_FRAME_YAW = 0x12;
-    constexpr uint8_t L20_FRAME_ROLL = 0x13;
-    constexpr uint8_t L20_FRAME_TIP = 0x14;
-    constexpr uint8_t L20_FRAME_SPEED = 0x15;
-    constexpr uint8_t L20_FRAME_CURRENT = 0x16;
+    constexpr uint8_t L20_FRAME_PITCH = 0x01;   /* 指根弯曲 */
+    constexpr uint8_t L20_FRAME_YAW = 0x02;    /* 侧摆 */
+    constexpr uint8_t L20_FRAME_ROLL = 0x03;    /* 拇指旋转 */
+    constexpr uint8_t L20_FRAME_TIP = 0x04;      /* 指尖弯曲 */
+    constexpr uint8_t L20_FRAME_SPEED = 0x05;  /* 速度 */
+    constexpr uint8_t L20_FRAME_CURRENT = 0x06; /* 电流 */
     
     uint8_t data[5];
     
-    // 发送Pitch帧 (0x11)
+    // 发送Pitch帧 (0x01) - 指根弯曲
     data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].pitch_angle;
     data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].pitch_angle;
     data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].pitch_angle;
@@ -291,7 +291,7 @@ int CanSender::sendL20(uint32_t device_id, const HandControlRequest& request)
     // 帧间延时1500us
     usleep(1500);
     
-    // 发送Tip帧 (0x14)
+    // 发送Tip帧 (0x04) - 指尖弯曲
     data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].tip_angle;
     data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].tip_angle;
     data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].tip_angle;
@@ -304,7 +304,7 @@ int CanSender::sendL20(uint32_t device_id, const HandControlRequest& request)
     // 帧间延时1500us
     usleep(1500);
     
-    // 发送Yaw帧 (0x12)
+    // 发送Yaw帧 (0x02) - 侧摆
     data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].yaw_angle;
     data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].yaw_angle;
     data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].yaw_angle;
@@ -317,7 +317,7 @@ int CanSender::sendL20(uint32_t device_id, const HandControlRequest& request)
     // 帧间延时1500us
     usleep(1500);
     
-    // 发送Roll帧 (0x13)
+    // 发送Roll帧 (0x03) - 拇指旋转
     data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].roll_angle;
     data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].roll_angle;
     data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].roll_angle;
@@ -330,7 +330,7 @@ int CanSender::sendL20(uint32_t device_id, const HandControlRequest& request)
     // 帧间延时1500us
     usleep(1500);
     
-    // 发送Speed帧 (0x15)
+    // 发送Speed帧 (0x05) - 速度
     data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].speed_angle;
     data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].speed_angle;
     data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].speed_angle;
@@ -343,7 +343,7 @@ int CanSender::sendL20(uint32_t device_id, const HandControlRequest& request)
     // 帧间延时1500us
     usleep(1500);
     
-    // 发送Current帧 (0x16)
+    // 发送Current帧 (0x06) - 电流
     data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].over_current;
     data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].over_current;
     data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].over_current;
@@ -359,70 +359,115 @@ int CanSender::sendL20(uint32_t device_id, const HandControlRequest& request)
 int CanSender::sendL21(uint32_t device_id, const HandControlRequest& request)
 {
     /**
-     * @brief L21协议：4帧协议（无速度电流）
+     * @brief L21协议：带返回的多帧协议（25个关节）
      * 
-     * 协议格式：
-     * - 0x01: Roll帧（5个手指）
-     * - 0x02: Yaw帧（5个手指）
-     * - 0x03: Pitch帧（5个手指）
-     * - 0x06: Tip帧（5个手指）
+     * 协议格式（带返回类型）：
+     * 位置控制：
+     * - 0x41: 拇指关节位置（6个关节）
+     * - 0x42: 食指关节位置（6个关节）
+     * - 0x43: 中指关节位置（6个关节）
+     * - 0x44: 无名指关节位置（6个关节）
+     * - 0x45: 小指关节位置（6个关节）
+     * 
+     * 速度控制：
+     * - 0x49: 拇指速度（6个关节）
+     * - 0x4A: 食指速度（6个关节）
+     * - 0x4B: 中指速度（6个关节）
+     * - 0x4C: 无名指速度（6个关节）
+     * - 0x4D: 小指速度（6个关节）
+     * 
+     * 转矩控制：
+     * - 0x51: 拇指转矩（发送5个值，每个手指统一转矩）
+     * - 0x52: 食指转矩
+     * - 0x53: 中指转矩
+     * - 0x54: 无名指转矩
+     * - 0x55: 小指转矩
+     * 
+     * 注意：L21有25个关节，需要映射为30个值（每个手指6个关节）
+     * 当前实现使用简化的映射：Roll(5) + Yaw(5) + Pitch(5) + Tip(5) + 其他(5) = 25
      */
     
-    constexpr uint8_t L21_FRAME_ROLL = 0x01;
-    constexpr uint8_t L21_FRAME_YAW = 0x02;
-    constexpr uint8_t L21_FRAME_PITCH = 0x03;
-    constexpr uint8_t L21_FRAME_TIP = 0x06;
+    constexpr uint8_t L21_FRAME_THUMB_POS = 0x41;   /* 拇指位置 */
+    constexpr uint8_t L21_FRAME_INDEX_POS = 0x42;    /* 食指位置 */
+    constexpr uint8_t L21_FRAME_MIDDLE_POS = 0x43;  /* 中指位置 */
+    constexpr uint8_t L21_FRAME_RING_POS = 0x44;    /* 无名指位置 */
+    constexpr uint8_t L21_FRAME_LITTLE_POS = 0x45;  /* 小指位置 */
     
-    uint8_t data[5];
+    constexpr uint8_t L21_FRAME_THUMB_SPEED = 0x49;  /* 拇指速度 */
+    constexpr uint8_t L21_FRAME_INDEX_SPEED = 0x4A;  /* 食指速度 */
+    constexpr uint8_t L21_FRAME_MIDDLE_SPEED = 0x4B; /* 中指速度 */
+    constexpr uint8_t L21_FRAME_RING_SPEED = 0x4C;   /* 无名指速度 */
+    constexpr uint8_t L21_FRAME_LITTLE_SPEED = 0x4D; /* 小指速度 */
     
-    // 发送Roll帧 (0x01)
+    constexpr uint8_t L21_FRAME_THUMB_TORQUE = 0x51;  /* 拇指转矩 */
+    constexpr uint8_t L21_FRAME_INDEX_TORQUE = 0x52;  /* 食指转矩 */
+    constexpr uint8_t L21_FRAME_MIDDLE_TORQUE = 0x53; /* 中指转矩 */
+    constexpr uint8_t L21_FRAME_RING_TORQUE = 0x54;   /* 无名指转矩 */
+    constexpr uint8_t L21_FRAME_LITTLE_TORQUE = 0x55; /* 小指转矩 */
+    
+    uint8_t data[6];
+    
+    // 发送位置控制帧（每个手指6个关节）
+    // 拇指位置 (0x41)
     data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].roll_angle;
-    data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].roll_angle;
-    data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].roll_angle;
-    data[3] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_RING)].roll_angle;
-    data[4] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_LITTLE)].roll_angle;
-    if (sendFrame(device_id, static_cast<HandFrameType>(L21_FRAME_ROLL), data, 6) != 0) {
+    data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].yaw_angle;
+    data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].pitch_angle;
+    data[3] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].tip_angle;
+    data[4] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].pitch_angle; // 重复使用pitch作为第5个关节
+    data[5] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].pitch_angle; // 重复使用pitch作为第6个关节
+    if (sendFrame(device_id, static_cast<HandFrameType>(L21_FRAME_THUMB_POS), data, 7) != 0) {
         return -1;
     }
-    
-    // 帧间延时1500us
     usleep(1500);
     
-    // 发送Yaw帧 (0x02)
-    data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].yaw_angle;
+    // 食指位置 (0x42)
+    data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].roll_angle;
     data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].yaw_angle;
-    data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].yaw_angle;
-    data[3] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_RING)].yaw_angle;
-    data[4] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_LITTLE)].yaw_angle;
-    if (sendFrame(device_id, static_cast<HandFrameType>(L21_FRAME_YAW), data, 6) != 0) {
+    data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].pitch_angle;
+    data[3] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].tip_angle;
+    data[4] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].pitch_angle;
+    data[5] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].pitch_angle;
+    if (sendFrame(device_id, static_cast<HandFrameType>(L21_FRAME_INDEX_POS), data, 7) != 0) {
         return -1;
     }
-    
-    // 帧间延时1500us
     usleep(1500);
     
-    // 发送Pitch帧 (0x03)
-    data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].pitch_angle;
-    data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].pitch_angle;
+    // 中指位置 (0x43)
+    data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].roll_angle;
+    data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].yaw_angle;
     data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].pitch_angle;
-    data[3] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_RING)].pitch_angle;
-    data[4] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_LITTLE)].pitch_angle;
-    if (sendFrame(device_id, static_cast<HandFrameType>(L21_FRAME_PITCH), data, 6) != 0) {
+    data[3] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].tip_angle;
+    data[4] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].pitch_angle;
+    data[5] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].pitch_angle;
+    if (sendFrame(device_id, static_cast<HandFrameType>(L21_FRAME_MIDDLE_POS), data, 7) != 0) {
         return -1;
     }
-    
-    // 帧间延时1500us
     usleep(1500);
     
-    // 发送Tip帧 (0x06)
-    data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_THUMB)].tip_angle;
-    data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_INDEX)].tip_angle;
-    data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_MIDDLE)].tip_angle;
+    // 无名指位置 (0x44)
+    data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_RING)].roll_angle;
+    data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_RING)].yaw_angle;
+    data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_RING)].pitch_angle;
     data[3] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_RING)].tip_angle;
-    data[4] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_LITTLE)].tip_angle;
-    if (sendFrame(device_id, static_cast<HandFrameType>(L21_FRAME_TIP), data, 6) != 0) {
+    data[4] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_RING)].pitch_angle;
+    data[5] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_RING)].pitch_angle;
+    if (sendFrame(device_id, static_cast<HandFrameType>(L21_FRAME_RING_POS), data, 7) != 0) {
         return -1;
     }
+    usleep(1500);
+    
+    // 小指位置 (0x45)
+    data[0] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_LITTLE)].roll_angle;
+    data[1] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_LITTLE)].yaw_angle;
+    data[2] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_LITTLE)].pitch_angle;
+    data[3] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_LITTLE)].tip_angle;
+    data[4] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_LITTLE)].pitch_angle;
+    data[5] = request.fingers[static_cast<size_t>(FingerIndex::FINGER_LITTLE)].pitch_angle;
+    if (sendFrame(device_id, static_cast<HandFrameType>(L21_FRAME_LITTLE_POS), data, 7) != 0) {
+        return -1;
+    }
+    
+    // 注意：速度控制和转矩控制暂未实现，需要根据实际需求添加
     
     return 0;
 }

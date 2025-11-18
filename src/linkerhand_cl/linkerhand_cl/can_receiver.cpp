@@ -53,6 +53,8 @@ CanReceiver::CanReceiver(const std::string& can_interface, uint32_t bitrate, uin
     // 初始化协议特定数据缓存
     l10_x01.resize(6, 0);
     l10_x04.resize(4, 0);
+    l10_x02.resize(5, 0);
+    l10_x03.resize(5, 0);
     l10_x05.resize(5, 0);
     l10_x06.resize(5, 0);
     
@@ -64,12 +66,24 @@ CanReceiver::CanReceiver(const std::string& can_interface, uint32_t bitrate, uin
     l20_x06.resize(5, 0);
     l20_x07.resize(5, 0);
     
-    l21_x01.resize(5, 0);
-    l21_x02.resize(5, 0);
-    l21_x03.resize(5, 0);
-    l21_x06.resize(5, 0);
+    l21_x41.resize(6, 0);
+    l21_x42.resize(6, 0);
+    l21_x43.resize(6, 0);
+    l21_x44.resize(6, 0);
+    l21_x45.resize(6, 0);
+    l21_x49.resize(6, 0);
+    l21_x4a.resize(6, 0);
+    l21_x4b.resize(6, 0);
+    l21_x4c.resize(6, 0);
+    l21_x4d.resize(6, 0);
+    l21_x51.resize(6, 0);
+    l21_x52.resize(6, 0);
+    l21_x53.resize(6, 0);
+    l21_x54.resize(6, 0);
+    l21_x55.resize(6, 0);
     
     l7_x01.resize(7, 0);
+    l7_x02.resize(7, 0);
     l7_x05.resize(7, 0);
     
     l25_x01.resize(5, 0);
@@ -79,6 +93,7 @@ CanReceiver::CanReceiver(const std::string& can_interface, uint32_t bitrate, uin
     l25_x06.resize(5, 0);
     
     o6_x01.resize(6, 0);
+    o6_x02.resize(6, 0);
     o6_x05.resize(6, 0);
     
     // 先设置比特率，再打开接口
@@ -280,13 +295,17 @@ void CanReceiver::processL10Response(uint8_t frame_type, const uint8_t* data, ui
      */
     std::lock_guard<std::mutex> lock(data_mutex_);
     
-    if (frame_type == 0x01) {  // JOINT_POSITION_RCO
+    if (frame_type == 0x01) {  // JOINT_POSITION_RCO（前6个关节位置）
         l10_x01.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
-    } else if (frame_type == 0x04) {  // JOINT_POSITION2_RCO
+    } else if (frame_type == 0x04) {  // JOINT_POSITION2_RCO（后4个关节位置）
         l10_x04.assign(data, data + std::min(length, static_cast<uint8_t>(4)));
-    } else if (frame_type == 0x05) {  // JOINT_SPEED_R
+    } else if (frame_type == 0x02) {  // MAX_PRESS_RCO（前5个关节转矩/电流）
+        l10_x02.assign(data, data + std::min(length, static_cast<uint8_t>(5)));
+    } else if (frame_type == 0x03) {  // MAX_PRESS_RCO2（后5个关节转矩/电流）
+        l10_x03.assign(data, data + std::min(length, static_cast<uint8_t>(5)));
+    } else if (frame_type == 0x05) {  // JOINT_SPEED（前5个关节速度）
         l10_x05.assign(data, data + std::min(length, static_cast<uint8_t>(5)));
-    } else if (frame_type == 0x06) {  // JOINT_SPEED2
+    } else if (frame_type == 0x06) {  // JOINT_SPEED2（后5个关节速度）
         l10_x06.assign(data, data + std::min(length, static_cast<uint8_t>(5)));
     } else if (frame_type == 0x20) {  // HAND_NORMAL_FORCE
         for (size_t i = 0; i < std::min(static_cast<size_t>(length), normal_force_.size()); i++) {
@@ -387,14 +406,41 @@ void CanReceiver::processL21Response(uint8_t frame_type, const uint8_t* data, ui
      */
     std::lock_guard<std::mutex> lock(data_mutex_);
     
-    if (frame_type == 0x01) {  // ROLL_POS
-        l21_x01.assign(data, data + std::min(length, static_cast<uint8_t>(5)));
-    } else if (frame_type == 0x02) {  // YAW_POS
-        l21_x02.assign(data, data + std::min(length, static_cast<uint8_t>(5)));
-    } else if (frame_type == 0x03) {  // ROOT1_POS
-        l21_x03.assign(data, data + std::min(length, static_cast<uint8_t>(5)));
-    } else if (frame_type == 0x06) {  // TIP_POS
-        l21_x06.assign(data, data + std::min(length, static_cast<uint8_t>(5)));
+    // 位置控制返回帧（0x41-0x45）
+    if (frame_type == 0x41) {  // THUMB_POS（拇指位置，6个关节）
+        l21_x41.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x42) {  // INDEX_POS（食指位置，6个关节）
+        l21_x42.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x43) {  // MIDDLE_POS（中指位置，6个关节）
+        l21_x43.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x44) {  // RING_POS（无名指位置，6个关节）
+        l21_x44.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x45) {  // LITTLE_POS（小指位置，6个关节）
+        l21_x45.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    }
+    // 速度控制返回帧（0x49-0x4D）
+    else if (frame_type == 0x49) {  // THUMB_SPEED（拇指速度，6个关节）
+        l21_x49.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x4A) {  // INDEX_SPEED（食指速度，6个关节）
+        l21_x4a.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x4B) {  // MIDDLE_SPEED（中指速度，6个关节）
+        l21_x4b.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x4C) {  // RING_SPEED（无名指速度，6个关节）
+        l21_x4c.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x4D) {  // LITTLE_SPEED（小指速度，6个关节）
+        l21_x4d.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    }
+    // 转矩控制返回帧（0x51-0x55）
+    else if (frame_type == 0x51) {  // THUMB_TORQUE（拇指转矩，6个关节）
+        l21_x51.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x52) {  // INDEX_TORQUE（食指转矩，6个关节）
+        l21_x52.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x53) {  // MIDDLE_TORQUE（中指转矩，6个关节）
+        l21_x53.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x54) {  // RING_TORQUE（无名指转矩，6个关节）
+        l21_x54.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x55) {  // LITTLE_TORQUE（小指转矩，6个关节）
+        l21_x55.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
     } else if (frame_type == 0x20) {  // HAND_NORMAL_FORCE
         for (size_t i = 0; i < std::min(static_cast<size_t>(length), normal_force_.size()); i++) {
             normal_force_[i] = static_cast<float>(data[i]);
@@ -434,9 +480,11 @@ void CanReceiver::processL7Response(uint8_t frame_type, const uint8_t* data, uin
      */
     std::lock_guard<std::mutex> lock(data_mutex_);
     
-    if (frame_type == 0x01) {  // JOINT_POSITION
+    if (frame_type == 0x01) {  // JOINT_POSITION_RCO（7个关节位置）
         l7_x01.assign(data, data + std::min(length, static_cast<uint8_t>(7)));
-    } else if (frame_type == 0x05) {  // JOINT_SPEED
+    } else if (frame_type == 0x02) {  // MAX_PRESS_RCO（7个关节转矩/电流）
+        l7_x02.assign(data, data + std::min(length, static_cast<uint8_t>(7)));
+    } else if (frame_type == 0x05) {  // JOINT_SPEED（7个关节速度）
         l7_x05.assign(data, data + std::min(length, static_cast<uint8_t>(7)));
     } else if (frame_type == 0x20) {  // HAND_NORMAL_FORCE
         for (size_t i = 0; i < std::min(static_cast<size_t>(length), normal_force_.size()); i++) {
@@ -513,9 +561,11 @@ void CanReceiver::processO6Response(uint8_t frame_type, const uint8_t* data, uin
      */
     std::lock_guard<std::mutex> lock(data_mutex_);
     
-    if (frame_type == 0x01) {  // JOINT_POSITION
+    if (frame_type == 0x01) {  // JOINT_POSITION_RCO（6个关节位置）
         o6_x01.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
-    } else if (frame_type == 0x05) {  // JOINT_SPEED
+    } else if (frame_type == 0x02) {  // MAX_PRESS_RCO（6个关节转矩/电流）
+        o6_x02.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
+    } else if (frame_type == 0x05) {  // JOINT_SPEED（6个关节速度）
         o6_x05.assign(data, data + std::min(length, static_cast<uint8_t>(6)));
     } else if (frame_type == 0x20) {  // HAND_NORMAL_FORCE
         for (size_t i = 0; i < std::min(static_cast<size_t>(length), normal_force_.size()); i++) {
@@ -650,10 +700,16 @@ std::vector<uint8_t> CanReceiver::getJointPositions(HandProtocol protocol)
             positions.insert(positions.end(), l20_x04.begin(), l20_x04.end());
             break;
         case HandProtocol::HAND_PROTO_L21:
-            positions = l21_x01;
-            positions.insert(positions.end(), l21_x02.begin(), l21_x02.end());
-            positions.insert(positions.end(), l21_x03.begin(), l21_x03.end());
-            positions.insert(positions.end(), l21_x06.begin(), l21_x06.end());
+            // L21: 25个关节，从5个手指的位置数据中提取（每个手指6个关节，共30个值，映射回25个）
+            positions = l21_x41;  // 拇指（6个关节）
+            positions.insert(positions.end(), l21_x42.begin(), l21_x42.end());  // 食指（6个关节）
+            positions.insert(positions.end(), l21_x43.begin(), l21_x43.end());  // 中指（6个关节）
+            positions.insert(positions.end(), l21_x44.begin(), l21_x44.end());  // 无名指（6个关节）
+            positions.insert(positions.end(), l21_x45.begin(), l21_x45.end());  // 小指（6个关节）
+            // 注意：实际返回30个值，需要映射回25个关节（根据协议说明）
+            if (positions.size() > 25) {
+                positions.resize(25);
+            }
             break;
         case HandProtocol::HAND_PROTO_L7:
             positions = l7_x01;
@@ -690,6 +746,19 @@ std::vector<uint8_t> CanReceiver::getJointVelocities(HandProtocol protocol)
         }
         case HandProtocol::HAND_PROTO_L20:
             return l20_x05;
+        case HandProtocol::HAND_PROTO_L21: {
+            // L21: 25个关节速度，从5个手指的速度数据中提取
+            std::vector<uint8_t> vel = l21_x49;  // 拇指（6个关节）
+            vel.insert(vel.end(), l21_x4a.begin(), l21_x4a.end());  // 食指（6个关节）
+            vel.insert(vel.end(), l21_x4b.begin(), l21_x4b.end());  // 中指（6个关节）
+            vel.insert(vel.end(), l21_x4c.begin(), l21_x4c.end());  // 无名指（6个关节）
+            vel.insert(vel.end(), l21_x4d.begin(), l21_x4d.end());  // 小指（6个关节）
+            // 映射回25个关节
+            if (vel.size() > 25) {
+                vel.resize(25);
+            }
+            return vel;
+        }
         case HandProtocol::HAND_PROTO_L7:
             return l7_x05;
         case HandProtocol::HAND_PROTO_O6:
@@ -707,8 +776,31 @@ std::vector<uint8_t> CanReceiver::getJointCurrents(HandProtocol protocol)
     std::lock_guard<std::mutex> lock(data_mutex_);
     
     switch (protocol) {
+        case HandProtocol::HAND_PROTO_L10: {
+            // L10: 10个关节电流，从两帧数据中提取
+            std::vector<uint8_t> current = l10_x02;  // 前5个关节
+            current.insert(current.end(), l10_x03.begin(), l10_x03.end());  // 后5个关节
+            return current;
+        }
         case HandProtocol::HAND_PROTO_L20:
             return l20_x06;
+        case HandProtocol::HAND_PROTO_L7:
+            return l7_x02;  // L7: 7个关节电流
+        case HandProtocol::HAND_PROTO_O6:
+            return o6_x02;  // O6: 6个关节电流
+        case HandProtocol::HAND_PROTO_L21: {
+            // L21: 25个关节转矩，从5个手指的转矩数据中提取
+            std::vector<uint8_t> torque = l21_x51;  // 拇指（6个关节）
+            torque.insert(torque.end(), l21_x52.begin(), l21_x52.end());  // 食指（6个关节）
+            torque.insert(torque.end(), l21_x53.begin(), l21_x53.end());  // 中指（6个关节）
+            torque.insert(torque.end(), l21_x54.begin(), l21_x54.end());  // 无名指（6个关节）
+            torque.insert(torque.end(), l21_x55.begin(), l21_x55.end());  // 小指（6个关节）
+            // 映射回25个关节
+            if (torque.size() > 25) {
+                torque.resize(25);
+            }
+            return torque;
+        }
         default:
             return std::vector<uint8_t>();
     }

@@ -411,10 +411,10 @@ private:
             if (finger_index == FingerIndex::FINGER_THUMB) {
                 // 拇指Yaw轴：仅右手反向；左手不反向
                 float out_yaw = (device_id == HAND_ID_RIGHT) ? (1.0f - yaw_val) : yaw_val;
-                float thumb_yaw_scale = 0.9f;
-                float thumb_yaw_offset = 0.1f;
-                float thumb_roll_scale = 0.8f;
-                float thumb_roll_offset = 0.2f;
+                float thumb_yaw_scale = 1.0f;
+                float thumb_yaw_offset = 0.0f;
+                float thumb_roll_scale = 1.0f;
+                float thumb_roll_offset = 0.0f;
                 hand_control_.setFingerYawEx(device_id, FingerIndex::FINGER_THUMB, 
                                             out_yaw * thumb_yaw_scale + thumb_yaw_offset);
                 hand_control_.setFingerRollEx(device_id, FingerIndex::FINGER_THUMB, 
@@ -697,18 +697,11 @@ private:
             }
         }
         
-        // 定期请求状态数据
-        static int request_counter = 0;
-        request_counter++;
-        if (request_counter >= 10) {  // 每10次发布请求一次状态
-            request_counter = 0;
-            if (can_receiver_right_) {
-                can_receiver_right_->requestStatus(current_protocol);
-            }
-            if (can_receiver_left_) {
-                can_receiver_left_->requestStatus(current_protocol);
-            }
-        }
+        /**
+         * @note 带返回的协议不需要请求状态
+         * 每次发送控制帧后，设备会自动返回状态数据
+         * 接收器会在后台线程中自动接收并处理返回的状态
+         */
     }
     
     HandControl hand_control_;                    /* 手部控制对象 */

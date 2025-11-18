@@ -56,18 +56,19 @@ ExHandNode::ExHandNode()
     }
 
     // 创建发布者
-    rclcpp::QoS qos_profile(10);
-    qos_profile.reliability(rclcpp::ReliabilityPolicy::BestEffort);
+    // 映射/传感器/状态类话题使用 BestEffort
+    rclcpp::QoS qos_best_effort(10);
+    qos_best_effort.reliability(rclcpp::ReliabilityPolicy::BestEffort);
 
     sensor_pub_right_ = this->create_publisher<std_msgs::msg::UInt16MultiArray>(
-        "exhand/sensor_data_right", qos_profile);
+        "exhand/sensor_data_right", qos_best_effort);
     sensor_pub_left_ = this->create_publisher<std_msgs::msg::UInt16MultiArray>(
-        "exhand/sensor_data_left", qos_profile);
+        "exhand/sensor_data_left", qos_best_effort);
     mapping_pub_right_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
-        "exhand/mapping_data_right", qos_profile);
+        "exhand/mapping_data_right", qos_best_effort);
     mapping_pub_left_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
-        "exhand/mapping_data_left", qos_profile);
-    status_pub_ = this->create_publisher<std_msgs::msg::UInt8>("exhand/status", qos_profile);
+        "exhand/mapping_data_left", qos_best_effort);
+    status_pub_ = this->create_publisher<std_msgs::msg::UInt8>("exhand/status", qos_best_effort);
 
     // 初始化数据缓存
     sensor_data_cache_[0].resize(15, 0);
