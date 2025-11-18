@@ -68,25 +68,6 @@ ExHandNode::ExHandNode()
     mapping_pub_left_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
         "exhand/mapping_data_left", qos_profile);
     status_pub_ = this->create_publisher<std_msgs::msg::UInt8>("exhand/status", qos_profile);
-    
-    // 创建控制命令发布者（用于数据采集）
-    cmd_pub_right_ = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/cb_right_hand_control_cmd", qos_profile);
-    cmd_pub_left_ = this->create_publisher<sensor_msgs::msg::JointState>(
-        "/cb_left_hand_control_cmd", qos_profile);
-    
-    // 订阅linkerhand_cl发布的控制命令（如果存在），并转发到标准话题
-    // 注意：如果linkerhand_cl已经发布到标准话题，这里可以作为备用或直接使用
-    // 这里我们直接创建发布者，让linkerhand_cl发布到标准话题即可
-    // 如果需要从内部话题转发，可以取消下面的注释
-    /*
-    cmd_sub_right_ = this->create_subscription<sensor_msgs::msg::JointState>(
-        "exhand/internal/right_hand_control_cmd", qos_profile,
-        std::bind(&ExHandNode::controlCommandCallback, this, std::placeholders::_1, "right"));
-    cmd_sub_left_ = this->create_subscription<sensor_msgs::msg::JointState>(
-        "exhand/internal/left_hand_control_cmd", qos_profile,
-        std::bind(&ExHandNode::controlCommandCallback, this, std::placeholders::_1, "left"));
-    */
 
     // 初始化数据缓存
     sensor_data_cache_[0].resize(15, 0);
@@ -111,7 +92,6 @@ ExHandNode::ExHandNode()
     startDataThread();
 
     RCLCPP_INFO(this->get_logger(), "手部控制器节点已启动");
-    RCLCPP_INFO(this->get_logger(), "控制命令发布者已创建: /cb_right_hand_control_cmd, /cb_left_hand_control_cmd");
 }
 
 ExHandNode::~ExHandNode()
@@ -367,23 +347,6 @@ void ExHandNode::publishMappingData(uint8_t hand, const std::vector<float>& data
     catch (const std::exception& e)
     {
         RCLCPP_ERROR(this->get_logger(), "发布映射数据到话题时出错: %s", e.what());
-    }
-}
-
-void ExHandNode::controlCommandCallback(const sensor_msgs::msg::JointState::SharedPtr msg, const std::string& hand_side)
-{
-    /**
-     * @brief 控制命令回调函数
-     * 
-     * 转发控制命令到标准话题用于数据采集
-     */
-    if (hand_side == "right" && cmd_pub_right_)
-    {
-        cmd_pub_right_->publish(*msg);
-    }
-    else if (hand_side == "left" && cmd_pub_left_)
-    {
-        cmd_pub_left_->publish(*msg);
     }
 }
 

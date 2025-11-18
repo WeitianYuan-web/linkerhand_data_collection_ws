@@ -13,7 +13,6 @@
 #include <std_msgs/msg/float32_multi_array.hpp>
 #include <std_msgs/msg/u_int16_multi_array.hpp>
 #include <std_msgs/msg/u_int8.hpp>
-#include <sensor_msgs/msg/joint_state.hpp>
 #include <memory>
 #include <thread>
 #include <atomic>
@@ -67,13 +66,6 @@ private:
      * @brief 定期发布系统状态
      */
     void publishStatus();
-    
-    /**
-     * @brief 控制命令回调函数（用于转发控制命令到标准话题）
-     * @param msg 控制命令消息
-     * @param hand_side 手侧（"left"或"right"）
-     */
-    void controlCommandCallback(const sensor_msgs::msg::JointState::SharedPtr msg, const std::string& hand_side);
 
     /**
      * @brief 自动启用设备
@@ -103,14 +95,6 @@ private:
     rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr mapping_pub_right_;
     rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr mapping_pub_left_;
     rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr status_pub_;
-    
-    // 控制命令发布者（用于数据采集）
-    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr cmd_pub_right_;
-    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr cmd_pub_left_;
-    
-    // 控制命令订阅者（从linkerhand_cl转发）
-    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr cmd_sub_right_;
-    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr cmd_sub_left_;
 
     // 定时器
     rclcpp::TimerBase::SharedPtr status_timer_;
