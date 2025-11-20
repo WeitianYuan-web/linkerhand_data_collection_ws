@@ -32,6 +32,24 @@ ament_target_dependencies(uart_frame_command_lib
   sensor_msgs
 )
 
+# 手部控制库源文件
+set(HAND_CONTROL_SOURCES
+  exhand_read/hand_control.cpp
+)
+
+# 手部控制库头文件
+set(HAND_CONTROL_HEADERS
+  include/exhand_read/hand_control.hpp
+)
+
+# 创建手部控制库
+add_library(hand_control_lib ${HAND_CONTROL_SOURCES} ${HAND_CONTROL_HEADERS})
+ament_target_dependencies(hand_control_lib
+  rclcpp
+  std_msgs
+  sensor_msgs
+)
+
 # ROS2节点可执行文件
 add_executable(exhand_node exhand_read/exhand_node.cpp)
 ament_target_dependencies(exhand_node
@@ -39,12 +57,13 @@ ament_target_dependencies(exhand_node
   std_msgs
   sensor_msgs
 )
-target_link_libraries(exhand_node uart_frame_command_lib)
+target_link_libraries(exhand_node uart_frame_command_lib hand_control_lib)
 
 # 安装
 install(TARGETS
   exhand_node
   uart_frame_command_lib
+  hand_control_lib
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -13,6 +13,7 @@
 #include <std_msgs/msg/float32_multi_array.hpp>
 #include <std_msgs/msg/u_int16_multi_array.hpp>
 #include <std_msgs/msg/u_int8.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
 #include <memory>
 #include <thread>
 #include <atomic>
@@ -21,6 +22,7 @@
 #include <string>
 
 #include "exhand_read/uart_frame_command.hpp"
+#include "exhand_read/hand_control.hpp"
 
 namespace exhand_read
 {
@@ -63,6 +65,34 @@ private:
     void publishMappingData(uint8_t hand, const std::vector<float>& data);
 
     /**
+     * @brief 发布控制命令到ROS2话题
+     * @param device_id 设备ID
+     * @param request 控制请求数据
+     */
+    void publishControlCommand(uint32_t device_id, const HandControlRequest& request);
+
+    /**
+     * @brief 从映射数据设置手部控制
+     * @param device_id 设备ID
+     * @param mapping_data 映射数据（15个值）
+     * @param start_finger 起始手指索引
+     */
+    void setHandControlFromMapping(uint32_t device_id, 
+                                    const std::vector<float>& mapping_data,
+                                    FingerIndex start_finger);
+
+    /**
+     * @brief 中点死区处理函数
+     * @details 对于Yaw轴（除了大拇指），实现中点死区处理：
+     *   - 当值在0.35-0.65之间时，输出0.5（死区中心）
+     *   - 当值在0-0.35之间时，映射到0-0.5
+     *   - 当值在0.65-1.0之间时，映射到0.5-1.0
+     * @param input_val 输入值（0.0-1.0）
+     * @return 处理后的值（0.0-1.0）
+     */
+    float applyYawDeadzone(float input_val);
+
+    /**
      * @brief 定期发布系统状态
      */
     void publishStatus();
@@ -95,12 +125,17 @@ private:
     rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr mapping_pub_right_;
     rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr mapping_pub_left_;
     rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr status_pub_;
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr cmd_pub_right_;     /* 右手控制命令发布者 */
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr cmd_pub_left_;      /* 左手控制命令发布者 */
 
     // 定时器
     rclcpp::TimerBase::SharedPtr status_timer_;
 
     // 串口通信SDK
     std::unique_ptr<UartFrameCommand> sdk_;
+
+    // 手部控制对象
+    HandControl hand_control_;
 
     // 数据缓存
     std::mutex data_mutex_;
@@ -113,6 +148,8 @@ private:
 
     // 参数
     double publish_rate_;
+    uint32_t right_hand_id_;                       /* 右手设备ID */
+    uint32_t left_hand_id_;                        /* 左手设备ID */
 };
 
 }  // namespace exhand_read

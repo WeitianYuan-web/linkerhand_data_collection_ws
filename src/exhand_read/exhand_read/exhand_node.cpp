@@ -8,6 +8,10 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
+#include <cmath>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 using namespace std::chrono_literals;
 
@@ -18,6 +22,8 @@ ExHandNode::ExHandNode()
     : Node("exhand_node")
     , running_(false)
     , publish_rate_(20.0)
+    , right_hand_id_(HAND_ID_RIGHT)
+    , left_hand_id_(HAND_ID_LEFT)
 {
     // 声明参数
     this->declare_parameter<std::string>("port", "/dev/ttyUSB0");
@@ -69,6 +75,29 @@ ExHandNode::ExHandNode()
     mapping_pub_left_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
         "exhand/mapping_data_left", qos_best_effort);
     status_pub_ = this->create_publisher<std_msgs::msg::UInt8>("exhand/status", qos_best_effort);
+
+    // 创建控制命令发布者（用于数据采集）
+    rclcpp::QoS cmd_qos(10);
+    cmd_qos.reliability(rclcpp::ReliabilityPolicy::BestEffort);
+    
+    cmd_pub_right_ = this->create_publisher<sensor_msgs::msg::JointState>(
+        "/cb_right_hand_control_cmd", cmd_qos);
+    cmd_pub_left_ = this->create_publisher<sensor_msgs::msg::JointState>(
+        "/cb_left_hand_control_cmd", cmd_qos);
+    
+    RCLCPP_INFO(this->get_logger(), "控制命令发布者已创建: /cb_right_hand_control_cmd, /cb_left_hand_control_cmd");
+
+    // 初始化手部控制对象
+    // 设置默认协议为L10
+    hand_control_.setProtocol(HandProtocol::HAND_PROTO_L10);
+    
+    // 初始化设备
+    if (hand_control_.initDevice(right_hand_id_) == 0) {
+        RCLCPP_INFO(this->get_logger(), "右手设备初始化成功: 0x%02X", right_hand_id_);
+    }
+    if (hand_control_.initDevice(left_hand_id_) == 0) {
+        RCLCPP_INFO(this->get_logger(), "左手设备初始化成功: 0x%02X", left_hand_id_);
+    }
 
     // 初始化数据缓存
     sensor_data_cache_[0].resize(15, 0);
@@ -337,12 +366,28 @@ void ExHandNode::publishMappingData(uint8_t hand, const std::vector<float>& data
             mapping_pub_right_->publish(*msg);
             RCLCPP_DEBUG(this->get_logger(), "✓ 已发布右手映射数据到 exhand/mapping_data_right: %zu 个数据点",
                         data.size());
+            
+            // 处理右手控制命令
+            setHandControlFromMapping(right_hand_id_, data, FingerIndex::FINGER_THUMB);
+            
+            // 转换并发布控制命令
+            HandControlRequest request{};
+            hand_control_.convertUserControlToSendData(right_hand_id_, request);
+            publishControlCommand(right_hand_id_, request);
         }
         else if (hand == 1)  // 左手
         {
             mapping_pub_left_->publish(*msg);
             RCLCPP_DEBUG(this->get_logger(), "✓ 已发布左手映射数据到 exhand/mapping_data_left: %zu 个数据点",
                         data.size());
+            
+            // 处理左手控制命令
+            setHandControlFromMapping(left_hand_id_, data, FingerIndex::FINGER_THUMB);
+            
+            // 转换并发布控制命令
+            HandControlRequest request{};
+            hand_control_.convertUserControlToSendData(left_hand_id_, request);
+            publishControlCommand(left_hand_id_, request);
         }
     }
     catch (const std::exception& e)
@@ -364,6 +409,235 @@ void ExHandNode::publishStatus()
     catch (const std::exception& e)
     {
         RCLCPP_DEBUG(this->get_logger(), "状态查询失败: %s", e.what());
+    }
+}
+
+float ExHandNode::applyYawDeadzone(float input_val)
+{
+    /**
+     * @brief 中点死区处理函数
+     * @details 对于Yaw轴（除了大拇指），实现中点死区处理：
+     *   - 当值在0.35-0.65之间时，输出0.5（死区中心）
+     *   - 当值在0-0.35之间时，映射到0-0.5
+     *   - 当值在0.65-1.0之间时，映射到0.5-1.0
+     * @param input_val 输入值（0.0-1.0）
+     * @return 处理后的值（0.0-1.0）
+     */
+    const float deadzone_low = 0.35f;   /**< 死区下限 */
+    const float deadzone_high = 0.65f;  /**< 死区上限 */
+    const float deadzone_center = 0.5f; /**< 死区中心值 */
+    
+    // 限制输入值在有效范围内
+    if (input_val < 0.0f) input_val = 0.0f;
+    if (input_val > 1.0f) input_val = 1.0f;
+    
+    // 死区处理
+    if (input_val >= deadzone_low && input_val <= deadzone_high) {
+        // 在死区内，输出中心值
+        return deadzone_center;
+    } else if (input_val < deadzone_low) {
+        // 在死区下方，映射到0-0.5
+        return (input_val / deadzone_low) * deadzone_center;
+    } else {
+        // 在死区上方，映射到0.5-1.0
+        float upper_range = 1.0f - deadzone_high;
+        float mapped_val = (input_val - deadzone_high) / upper_range;
+        return deadzone_center + mapped_val * (1.0f - deadzone_center);
+    }
+}
+
+void ExHandNode::setHandControlFromMapping(uint32_t device_id, 
+                                            const std::vector<float>& mapping_data,
+                                            FingerIndex /* start_finger */)
+{
+    /**
+     * @brief 从映射数据设置手部控制
+     * @param device_id 设备ID
+     * @param mapping_data 映射数据（15个值）
+     * @param start_finger 起始手指索引
+     */
+    // 映射数据索引到手指和关节
+    // 每个手指有3个关节：Yaw(0), Pitch(1), Tip(2)
+    for (size_t finger_idx = 0; finger_idx < HAND_NUM_FINGERS; finger_idx++) {
+        size_t base_idx = finger_idx * 3;
+        if (base_idx + 2 >= mapping_data.size()) {
+            break;
+        }
+        
+        float yaw_val = mapping_data[base_idx];
+        float pitch = mapping_data[base_idx + 1];
+        float tip = mapping_data[base_idx + 2];
+        
+        // 处理Yaw轴（传感器索引：base_idx）
+        // 使用映射数据直接作为yaw_val（原代码中的map_sensor_with_anchor_hand功能）
+        FingerIndex finger_index = static_cast<FingerIndex>(finger_idx);
+        
+        if (finger_index == FingerIndex::FINGER_THUMB) {
+            // 拇指Yaw轴：仅右手反向；左手不反向
+            float out_yaw = (device_id == HAND_ID_RIGHT) ? (1.0f - yaw_val) : yaw_val;
+            float thumb_yaw_scale = 1.0f;
+            float thumb_yaw_offset = 0.0f;
+            float thumb_roll_scale = 1.0f;
+            float thumb_roll_offset = 0.0f;
+            hand_control_.setFingerYawEx(device_id, FingerIndex::FINGER_THUMB, 
+                                        out_yaw * thumb_yaw_scale + thumb_yaw_offset);
+            hand_control_.setFingerRollEx(device_id, FingerIndex::FINGER_THUMB, 
+                                        out_yaw * thumb_roll_scale + thumb_roll_offset);
+        } else {
+            // 其他手指Yaw轴：死区处理；仅右手反向
+            yaw_val = applyYawDeadzone(yaw_val);
+            hand_control_.setFingerYawEx(device_id, finger_index, yaw_val);
+        }
+        
+        // 设置Pitch和Tip（保持不变）
+        hand_control_.setFingerPitchEx(device_id, finger_index, pitch);
+        hand_control_.setFingerTipEx(device_id, finger_index, tip);
+    }
+}
+
+void ExHandNode::publishControlCommand(uint32_t device_id, const HandControlRequest& request)
+{
+    /**
+     * @brief 发布控制命令到ROS2话题用于数据采集
+     * 
+     * 将控制命令转换为sensor_msgs/JointState格式发布
+     * 数据范围为0-255（与SDK保持一致）
+     */
+    sensor_msgs::msg::JointState msg;
+    msg.header.stamp = this->get_clock()->now();
+    
+    // 根据协议类型确定关节数量和数据格式
+    HandProtocol protocol = hand_control_.getProtocol();
+    std::vector<uint8_t> positions;
+    std::vector<std::string> joint_names;
+    
+    // 根据协议提取位置数据
+    switch (protocol) {
+        case HandProtocol::HAND_PROTO_L10: {
+            // L10: 10个关节
+            // 第一帧: 拇指Pitch, 拇指Yaw, 食指Pitch, 中指Pitch, 无名指Pitch, 小指Pitch (6个)
+            // 第二帧: 食指Yaw, 无名指Yaw, 小指Yaw, 拇指Roll (4个)
+            positions.push_back(request.fingers[0].pitch_angle);  // 拇指Pitch
+            positions.push_back(request.fingers[0].yaw_angle);      // 拇指Yaw
+            positions.push_back(request.fingers[1].pitch_angle);    // 食指Pitch
+            positions.push_back(request.fingers[2].pitch_angle);    // 中指Pitch
+            positions.push_back(request.fingers[3].pitch_angle);   // 无名指Pitch
+            positions.push_back(request.fingers[4].pitch_angle);   // 小指Pitch
+            positions.push_back(request.fingers[1].yaw_angle);      // 食指Yaw
+            positions.push_back(request.fingers[3].yaw_angle);      // 无名指Yaw
+            positions.push_back(request.fingers[4].yaw_angle);      // 小指Yaw
+            positions.push_back(request.fingers[0].roll_angle);     // 拇指Roll
+            
+            for (size_t i = 0; i < 10; i++) {
+                joint_names.push_back("joint" + std::to_string(i + 1));
+            }
+            break;
+        }
+        case HandProtocol::HAND_PROTO_L20:
+        case HandProtocol::HAND_PROTO_L21: {
+            // L20/L21: 20个关节
+            // Pitch(5) + Yaw(5) + Roll(5) + Tip(5) = 20
+            for (size_t i = 0; i < 5; i++) {
+                positions.push_back(request.fingers[i].pitch_angle);
+            }
+            for (size_t i = 0; i < 5; i++) {
+                positions.push_back(request.fingers[i].yaw_angle);
+            }
+            for (size_t i = 0; i < 5; i++) {
+                positions.push_back(request.fingers[i].roll_angle);
+            }
+            for (size_t i = 0; i < 5; i++) {
+                positions.push_back(request.fingers[i].tip_angle);
+            }
+            
+            for (size_t i = 0; i < 20; i++) {
+                joint_names.push_back("joint" + std::to_string(i + 1));
+            }
+            break;
+        }
+        case HandProtocol::HAND_PROTO_L7: {
+            // L7: 7个关节
+            // 拇指Pitch, 食指Pitch, 中指Pitch, 无名指Pitch, 小指Pitch, 拇指Yaw, 拇指Roll
+            positions.push_back(request.fingers[0].pitch_angle);
+            positions.push_back(request.fingers[1].pitch_angle);
+            positions.push_back(request.fingers[2].pitch_angle);
+            positions.push_back(request.fingers[3].pitch_angle);
+            positions.push_back(request.fingers[4].pitch_angle);
+            positions.push_back(request.fingers[0].yaw_angle);
+            positions.push_back(request.fingers[0].roll_angle);
+            
+            for (size_t i = 0; i < 7; i++) {
+                joint_names.push_back("joint" + std::to_string(i + 1));
+            }
+            break;
+        }
+        case HandProtocol::HAND_PROTO_L25: {
+            // L25: 25个关节
+            // Roll(5) + Yaw(5) + Root1(5) + Root2(5) + Tip(5) = 25
+            for (size_t i = 0; i < 5; i++) {
+                positions.push_back(request.fingers[i].roll_angle);
+            }
+            for (size_t i = 0; i < 5; i++) {
+                positions.push_back(request.fingers[i].yaw_angle);
+            }
+            for (size_t i = 0; i < 5; i++) {
+                positions.push_back(request.fingers[i].pitch_angle);  // Root1使用pitch
+            }
+            for (size_t i = 0; i < 5; i++) {
+                positions.push_back(request.fingers[i].pitch_angle);  // Root2使用pitch（简化）
+            }
+            for (size_t i = 0; i < 5; i++) {
+                positions.push_back(request.fingers[i].tip_angle);
+            }
+            
+            for (size_t i = 0; i < 25; i++) {
+                joint_names.push_back("joint" + std::to_string(i + 1));
+            }
+            break;
+        }
+        case HandProtocol::HAND_PROTO_O6: {
+            // O6: 6个关节
+            // 拇指Pitch, 食指Pitch, 中指Pitch, 无名指Pitch, 小指Pitch, 拇指Yaw
+            positions.push_back(request.fingers[0].pitch_angle);
+            positions.push_back(request.fingers[1].pitch_angle);
+            positions.push_back(request.fingers[2].pitch_angle);
+            positions.push_back(request.fingers[3].pitch_angle);
+            positions.push_back(request.fingers[4].pitch_angle);
+            positions.push_back(request.fingers[0].yaw_angle);
+            
+            for (size_t i = 0; i < 6; i++) {
+                joint_names.push_back("joint" + std::to_string(i + 1));
+            }
+            break;
+        }
+        default:
+            // 默认使用L10格式
+            for (size_t i = 0; i < 5; i++) {
+                positions.push_back(request.fingers[i].pitch_angle);
+                positions.push_back(request.fingers[i].yaw_angle);
+            }
+            for (size_t i = 0; i < 10; i++) {
+                joint_names.push_back("joint" + std::to_string(i + 1));
+            }
+            break;
+    }
+    
+    // 设置消息内容
+    msg.name = joint_names;
+    msg.position.resize(positions.size());
+    for (size_t i = 0; i < positions.size(); i++) {
+        msg.position[i] = static_cast<double>(positions[i]);
+    }
+    msg.velocity.resize(positions.size(), 0.0);
+    msg.effort.resize(positions.size(), 0.0);
+    
+    // 根据设备ID发布到对应话题
+    if (device_id == right_hand_id_ && cmd_pub_right_) {
+        msg.header.frame_id = "right_hand";
+        cmd_pub_right_->publish(msg);
+    } else if (device_id == left_hand_id_ && cmd_pub_left_) {
+        msg.header.frame_id = "left_hand";
+        cmd_pub_left_->publish(msg);
     }
 }
 
